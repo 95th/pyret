@@ -8,8 +8,9 @@ pub struct Expr {
 
 #[derive(Debug)]
 pub enum ExprKind {
-    Binary(BinOp, Box<Expr>, Box<Expr>),
     Number(i32),
+    Unary(UnOp, Box<Expr>),
+    Binary(BinOp, Box<Expr>, Box<Expr>),
 }
 
 #[derive(Debug)]
@@ -18,4 +19,9 @@ pub enum BinOp {
     Sub,
     Mul,
     Div,
+}
+
+#[derive(Debug)]
+pub enum UnOp {
+    Neg,
 }

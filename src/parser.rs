@@ -1,4 +1,5 @@
 use crate::{
+    ast::UnOp,
     ast::{BinOp, Expr, ExprKind},
     lexer::{Lexer, Token, TokenKind},
 };
@@ -90,6 +91,20 @@ impl<'a> Parser<'a> {
     }
 
     fn unary(&mut self) -> Expr {
+        if self.eat(TokenKind::Minus) {
+            let lo = self.prev.span;
+            let expr = self.primary();
+            let span = lo.to(expr.span);
+            Expr {
+                kind: ExprKind::Unary(UnOp::Neg, Box::new(expr)),
+                span,
+            }
+        } else {
+            self.primary()
+        }
+    }
+
+    fn primary(&mut self) -> Expr {
         if self.eat(TokenKind::Number) {
             let span = self.prev.span;
             let val = self.source[span.lo..span.hi].parse().unwrap();

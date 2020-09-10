@@ -1,4 +1,4 @@
-use crate::ast::{BinOp, Expr, ExprKind};
+use crate::ast::{BinOp, Expr, ExprKind, UnOp};
 
 pub struct Eval {}
 
@@ -10,6 +10,9 @@ impl Eval {
     pub fn eval_expr(&mut self, expr: &Expr) -> i32 {
         match &expr.kind {
             ExprKind::Number(n) => *n,
+            ExprKind::Unary(op, e) => match op {
+                UnOp::Neg => -1 * self.eval_expr(e),
+            },
             ExprKind::Binary(op, l, r) => match op {
                 BinOp::Add => self.eval_expr(l) + self.eval_expr(r),
                 BinOp::Sub => self.eval_expr(l) - self.eval_expr(r),
