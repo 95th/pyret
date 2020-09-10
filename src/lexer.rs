@@ -50,7 +50,7 @@ impl<'a> Lexer<'a> {
     where
         F: Fn(u8) -> bool,
     {
-        if f(self.peek_char()) {
+        while f(self.peek_char()) {
             self.advance();
         }
     }
