@@ -1,5 +1,5 @@
 use crate::{
-    ast,
+    ast::{BinOp, Expr, ExprKind},
     lexer::{Lexer, Token, TokenKind},
 };
 
@@ -45,23 +45,23 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse_expr(&mut self) -> ast::Expr {
+    pub fn parse_expr(&mut self) -> Expr {
         self.addition()
     }
 
-    fn addition(&mut self) -> ast::Expr {
+    fn addition(&mut self) -> Expr {
         let mut left = self.multiplication();
 
         while eat!(self, TokenKind::Plus | TokenKind::Minus) {
             let op = match self.prev.kind {
-                TokenKind::Plus => ast::BinOp::Add,
-                TokenKind::Minus => ast::BinOp::Sub,
+                TokenKind::Plus => BinOp::Add,
+                TokenKind::Minus => BinOp::Sub,
                 _ => unreachable!(),
             };
             let right = self.multiplication();
             let span = left.span.to(right.span);
-            left = ast::Expr {
-                kind: ast::ExprKind::Binary(op, Box::new(left), Box::new(right)),
+            left = Expr {
+                kind: ExprKind::Binary(op, Box::new(left), Box::new(right)),
                 span,
             }
         }
@@ -69,19 +69,19 @@ impl<'a> Parser<'a> {
         left
     }
 
-    fn multiplication(&mut self) -> ast::Expr {
+    fn multiplication(&mut self) -> Expr {
         let mut left = self.unary();
 
         while eat!(self, TokenKind::Star | TokenKind::Slash) {
             let op = match self.prev.kind {
-                TokenKind::Star => ast::BinOp::Mul,
-                TokenKind::Slash => ast::BinOp::Div,
+                TokenKind::Star => BinOp::Mul,
+                TokenKind::Slash => BinOp::Div,
                 _ => unreachable!(),
             };
             let right = self.unary();
             let span = left.span.to(right.span);
-            left = ast::Expr {
-                kind: ast::ExprKind::Binary(op, Box::new(left), Box::new(right)),
+            left = Expr {
+                kind: ExprKind::Binary(op, Box::new(left), Box::new(right)),
                 span,
             }
         }
@@ -89,12 +89,12 @@ impl<'a> Parser<'a> {
         left
     }
 
-    fn unary(&mut self) -> ast::Expr {
+    fn unary(&mut self) -> Expr {
         if self.eat(TokenKind::Number) {
             let span = self.prev.span;
             let val = self.source[span.lo..span.hi].parse().unwrap();
-            ast::Expr {
-                kind: ast::ExprKind::Number(val),
+            Expr {
+                kind: ExprKind::Number(val),
                 span,
             }
         } else {
