@@ -19,6 +19,7 @@ impl Eval {
                 BinOp::Mul => self.eval_expr(l) * self.eval_expr(r),
                 BinOp::Div => self.eval_expr(l) / self.eval_expr(r),
             },
+            ExprKind::Grouping(e) => self.eval_expr(e),
         }
     }
 }

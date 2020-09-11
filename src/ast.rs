@@ -11,6 +11,7 @@ pub enum ExprKind {
     Number(i32),
     Unary(UnOp, Box<Expr>),
     Binary(BinOp, Box<Expr>, Box<Expr>),
+    Grouping(Box<Expr>),
 }
 
 #[derive(Debug)]

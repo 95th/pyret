@@ -112,6 +112,19 @@ impl<'a> Parser<'a> {
                 kind: ExprKind::Number(val),
                 span,
             }
+        } else if self.eat(TokenKind::OpenParen) {
+            let lo = self.prev.span;
+            let expr = self.parse_expr();
+            consume!(
+                self,
+                TokenKind::CloseParen,
+                "Expected ')' after grouping expression"
+            );
+            let span = lo.to(self.prev.span);
+            Expr {
+                kind: ExprKind::Grouping(Box::new(expr)),
+                span,
+            }
         } else {
             todo!()
         }

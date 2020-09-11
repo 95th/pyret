@@ -24,14 +24,31 @@ impl<'a> Lexer<'a> {
                 b'-' => self.token(Minus),
                 b'*' => self.token(Star),
                 b'/' => self.token(Slash),
+                b'(' => self.token(OpenParen),
+                b')' => self.token(CloseParen),
+                b'{' => self.token(OpenBrace),
+                b'}' => self.token(CloseBrace),
+                c if c.is_ascii_alphabetic() => self.ident_or_kw(),
                 c if c.is_ascii_digit() => self.number(),
                 c if c.is_ascii_whitespace() => continue,
-                c => panic!("Unexpected character {}", c),
+                c => panic!("Unexpected character {}", c as char),
             };
             return t;
         }
 
         self.token(Eof)
+    }
+
+    fn ident_or_kw(&mut self) -> Token {
+        self.eat_while(|c| c.is_ascii_alphanumeric() || c == b'_');
+        let span = self.span();
+        let lexeme = &self.source[span.lo..span.hi];
+        let kind = match lexeme {
+            b"if" => If,
+            b"else" => Else,
+            _ => Ident,
+        };
+        Token { kind, span }
     }
 
     fn number(&mut self) -> Token {
@@ -101,6 +118,15 @@ pub enum TokenKind {
     Minus,
     Star,
     Slash,
+
+    OpenParen,
+    CloseParen,
+    OpenBrace,
+    CloseBrace,
+
+    If,
+    Else,
+    Ident,
 
     Number,
 
