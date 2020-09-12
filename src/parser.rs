@@ -1,4 +1,5 @@
 use crate::{
+    ast::Literal,
     ast::UnOp,
     ast::{BinOp, Expr, ExprKind},
     lexer::{Lexer, Token, TokenKind},
@@ -47,7 +48,52 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse_expr(&mut self) -> Expr {
-        self.addition()
+        self.equality()
+    }
+
+    fn equality(&mut self) -> Expr {
+        let mut left = self.comparison();
+
+        while eat!(self, TokenKind::Ne | TokenKind::EqEq) {
+            let op = match self.prev.kind {
+                TokenKind::Ne => BinOp::Ne,
+                TokenKind::EqEq => BinOp::Eq,
+                _ => unreachable!(),
+            };
+            let right = self.comparison();
+            let span = left.span.to(right.span);
+            left = Expr {
+                kind: ExprKind::Binary(op, Box::new(left), Box::new(right)),
+                span,
+            }
+        }
+
+        left
+    }
+
+    fn comparison(&mut self) -> Expr {
+        let mut left = self.addition();
+
+        while eat!(
+            self,
+            TokenKind::Ge | TokenKind::Gt | TokenKind::Le | TokenKind::Lt
+        ) {
+            let op = match self.prev.kind {
+                TokenKind::Ge => BinOp::Ge,
+                TokenKind::Gt => BinOp::Gt,
+                TokenKind::Le => BinOp::Le,
+                TokenKind::Lt => BinOp::Lt,
+                _ => unreachable!(),
+            };
+            let right = self.addition();
+            let span = left.span.to(right.span);
+            left = Expr {
+                kind: ExprKind::Binary(op, Box::new(left), Box::new(right)),
+                span,
+            }
+        }
+
+        left
     }
 
     fn addition(&mut self) -> Expr {
@@ -109,7 +155,7 @@ impl<'a> Parser<'a> {
             let span = self.prev.span;
             let val = self.source[span.lo..span.hi].parse().unwrap();
             Expr {
-                kind: ExprKind::Number(val),
+                kind: ExprKind::Literal(Literal::Num(val)),
                 span,
             }
         } else if self.eat(TokenKind::OpenParen) {
@@ -125,8 +171,18 @@ impl<'a> Parser<'a> {
                 kind: ExprKind::Grouping(Box::new(expr)),
                 span,
             }
+        } else if eat!(self, TokenKind::True | TokenKind::False) {
+            let val = match self.prev.kind {
+                TokenKind::True => true,
+                TokenKind::False => false,
+                _ => unreachable!(),
+            };
+            Expr {
+                kind: ExprKind::Literal(Literal::Bool(val)),
+                span: self.prev.span,
+            }
         } else {
-            todo!()
+            panic!("Unexpected token: {:?}", self.token)
         }
     }
 

@@ -28,6 +28,48 @@ impl<'a> Lexer<'a> {
                 b')' => self.token(CloseParen),
                 b'{' => self.token(OpenBrace),
                 b'}' => self.token(CloseBrace),
+                b'=' => {
+                    if self.eat(b'=') {
+                        self.token(EqEq)
+                    } else {
+                        self.token(Eq)
+                    }
+                }
+                b'!' => {
+                    if self.eat(b'=') {
+                        self.token(Ne)
+                    } else {
+                        self.token(Not)
+                    }
+                }
+                b'>' => {
+                    if self.eat(b'=') {
+                        self.token(Ge)
+                    } else {
+                        self.token(Gt)
+                    }
+                }
+                b'<' => {
+                    if self.eat(b'=') {
+                        self.token(Le)
+                    } else {
+                        self.token(Lt)
+                    }
+                }
+                b'&' => {
+                    if self.eat(b'&') {
+                        self.token(AndAnd)
+                    } else {
+                        self.token(And)
+                    }
+                }
+                b'|' => {
+                    if self.eat(b'|') {
+                        self.token(OrOr)
+                    } else {
+                        self.token(Or)
+                    }
+                }
                 c if c.is_ascii_alphabetic() => self.ident_or_kw(),
                 c if c.is_ascii_digit() => self.number(),
                 c if c.is_ascii_whitespace() => continue,
@@ -46,6 +88,8 @@ impl<'a> Lexer<'a> {
         let kind = match lexeme {
             b"if" => If,
             b"else" => Else,
+            b"true" => True,
+            b"false" => False,
             _ => Ident,
         };
         Token { kind, span }
@@ -60,6 +104,15 @@ impl<'a> Lexer<'a> {
         Token {
             kind,
             span: self.span(),
+        }
+    }
+
+    fn eat(&mut self, c: u8) -> bool {
+        if self.peek_char() == c {
+            self.advance();
+            true
+        } else {
+            false
         }
     }
 
@@ -119,6 +172,20 @@ pub enum TokenKind {
     Star,
     Slash,
 
+    Eq,
+    EqEq,
+    Not,
+    Ne,
+    Gt,
+    Ge,
+    Lt,
+    Le,
+
+    And,
+    AndAnd,
+    Or,
+    OrOr,
+
     OpenParen,
     CloseParen,
     OpenBrace,
@@ -126,6 +193,8 @@ pub enum TokenKind {
 
     If,
     Else,
+    True,
+    False,
     Ident,
 
     Number,
