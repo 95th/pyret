@@ -12,6 +12,7 @@ pub enum ExprKind {
     Binary(BinOp, Box<Expr>, Box<Expr>),
     Grouping(Box<Expr>),
     Literal(Literal),
+    If(Box<Expr>, Box<Expr>, Box<Expr>),
 }
 
 #[derive(Debug)]

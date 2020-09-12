@@ -1,7 +1,7 @@
 use pyret::{eval::Eval, parser::Parser};
 
 fn main() {
-    let s = "(1 == 1) == (2 == 2)";
+    let s = "if 2 == 2 == true { 1 } else { 2 }";
     let mut parser = Parser::new(s);
     let e = parser.parse_expr();
     println!("{:#?}", e);

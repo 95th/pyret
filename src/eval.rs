@@ -50,6 +50,16 @@ impl Eval {
                 BinOp::Lt => self.eval_bool(l, r, |l, r| l < r),
             },
             ExprKind::Grouping(e) => self.eval_expr(e),
+            ExprKind::If(cond, then_branch, else_branch) => match self.eval_expr(cond) {
+                Value::Bool(b) => {
+                    if b {
+                        self.eval_expr(then_branch)
+                    } else {
+                        self.eval_expr(else_branch)
+                    }
+                }
+                _ => panic!("Condition must be a boolean expression"),
+            },
         }
     }
 

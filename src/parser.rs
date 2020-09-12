@@ -48,7 +48,29 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse_expr(&mut self) -> Expr {
-        self.equality()
+        if self.eat(TokenKind::If) {
+            self.if_expr()
+        } else {
+            self.equality()
+        }
+    }
+
+    fn if_expr(&mut self) -> Expr {
+        let lo = self.prev.span;
+        let cond = self.parse_expr();
+        consume!(self, TokenKind::OpenBrace, "Expect '{' after if condition");
+        let then_branch = self.parse_expr();
+        consume!(self, TokenKind::CloseBrace, "Expect '}' after then branch");
+        consume!(self, TokenKind::Else, "Expect 'else' after if condition");
+        consume!(self, TokenKind::OpenBrace, "Expect '{' after else");
+        let else_branch = self.parse_expr();
+        consume!(self, TokenKind::CloseBrace, "Expect '}' after else branch");
+
+        let span = lo.to(self.prev.span);
+        Expr {
+            kind: ExprKind::If(Box::new(cond), Box::new(then_branch), Box::new(else_branch)),
+            span,
+        }
     }
 
     fn equality(&mut self) -> Expr {
