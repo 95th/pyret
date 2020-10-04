@@ -1,4 +1,10 @@
-use crate::span::Span;
+use crate::{span::Span, symbol::Symbol};
+
+#[derive(Debug)]
+pub struct Stmt {
+    pub kind: StmtKind,
+    pub span: Span,
+}
 
 #[derive(Debug)]
 pub struct Expr {
@@ -13,6 +19,7 @@ pub enum ExprKind {
     Grouping(Box<Expr>),
     Literal(Literal),
     If(Box<Expr>, Box<Expr>, Box<Expr>),
+    Block(Block),
 }
 
 #[derive(Debug)]
@@ -38,4 +45,24 @@ pub enum UnOp {
 pub enum Literal {
     Bool(bool),
     Num(i32),
+}
+
+#[derive(Debug)]
+pub enum StmtKind {
+    Let {
+        ident: Symbol,
+        ty: Symbol,
+        init: Option<Expr>,
+    },
+    Assign {
+        ident: Symbol,
+        value: Expr,
+    },
+    Expr(Expr),
+    ExprWithoutSemi(Expr),
+}
+
+#[derive(Debug)]
+pub struct Block {
+    pub stmts: Vec<Stmt>,
 }

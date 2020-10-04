@@ -1,7 +1,8 @@
 use crate::{
+    ast::Block,
     ast::Literal,
     ast::UnOp,
-    ast::{BinOp, Expr, ExprKind},
+    ast::{BinOp, Expr, ExprKind, Stmt},
     lexer::{Lexer, Token, TokenKind},
 };
 
@@ -47,6 +48,10 @@ impl<'a> Parser<'a> {
         }
     }
 
+    pub fn parse_stmt(&mut self) -> Stmt {
+        todo!()
+    }
+
     pub fn parse_expr(&mut self) -> Expr {
         if self.eat(TokenKind::If) {
             self.if_expr()
@@ -61,7 +66,9 @@ impl<'a> Parser<'a> {
         consume!(self, TokenKind::OpenBrace, "Expect '{' after if condition");
         let then_branch = self.parse_expr();
         consume!(self, TokenKind::CloseBrace, "Expect '}' after then branch");
+
         consume!(self, TokenKind::Else, "Expect 'else' after if condition");
+
         consume!(self, TokenKind::OpenBrace, "Expect '{' after else");
         let else_branch = self.parse_expr();
         consume!(self, TokenKind::CloseBrace, "Expect '}' after else branch");
@@ -203,9 +210,29 @@ impl<'a> Parser<'a> {
                 kind: ExprKind::Literal(Literal::Bool(val)),
                 span: self.prev.span,
             }
+        } else if self.eat(TokenKind::OpenBrace) {
+            let lo = self.prev.span;
+            let block = self.block();
+            let span = lo.to(self.prev.span);
+            Expr {
+                kind: ExprKind::Block(block),
+                span,
+            }
         } else {
             panic!("Unexpected token: {:?}", self.token)
         }
+    }
+
+    fn block(&mut self) -> Block {
+        let mut stmts = vec![];
+
+        while !self.eof() && !self.check(TokenKind::CloseBrace) {
+            let stmt = self.parse_stmt();
+            stmts.push(stmt);
+        }
+
+        consume!(self, TokenKind::CloseBrace, "Expect '}' after block");
+        Block { stmts }
     }
 
     fn eat(&mut self, kind: TokenKind) -> bool {

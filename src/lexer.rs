@@ -21,13 +21,21 @@ impl<'a> Lexer<'a> {
             self.start = self.pos;
             let t = match self.next_char() {
                 b'+' => self.token(Plus),
-                b'-' => self.token(Minus),
+                b'-' => {
+                    if self.eat(b'>') {
+                        self.token(LArrow)
+                    } else {
+                        self.token(Minus)
+                    }
+                }
                 b'*' => self.token(Star),
                 b'/' => self.token(Slash),
                 b'(' => self.token(OpenParen),
                 b')' => self.token(CloseParen),
                 b'{' => self.token(OpenBrace),
                 b'}' => self.token(CloseBrace),
+                b':' => self.token(Colon),
+                b';' => self.token(Semicolon),
                 b'=' => {
                     if self.eat(b'=') {
                         self.token(EqEq)
@@ -90,6 +98,9 @@ impl<'a> Lexer<'a> {
             b"else" => Else,
             b"true" => True,
             b"false" => False,
+            b"let" => Let,
+            b"fn" => Func,
+            b"return" => Return,
             _ => Ident,
         };
         Token { kind, span }
@@ -190,11 +201,17 @@ pub enum TokenKind {
     CloseParen,
     OpenBrace,
     CloseBrace,
+    LArrow,
+    Colon,
+    Semicolon,
 
     If,
     Else,
     True,
     False,
+    Let,
+    Func,
+    Return,
     Ident,
 
     Number,

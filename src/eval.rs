@@ -60,6 +60,7 @@ impl Eval {
                 }
                 _ => panic!("Condition must be a boolean expression"),
             },
+            ExprKind::Block(_block) => todo!(),
         }
     }
 
